@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+ 
+  provider          = "sqlserver"
+  url               = env("DATABASE_URL")
+ }
+
+
+
+
+
+
+model Question {
+  // Primary Key
+  id             String                       @id @db.VarChar(40)
+  simpleHelpText String?                      @db.VarChar(max)
+  popupHelpText  String?                      @db.VarChar(max)
+  text           String
+  options        Option[]
+  tags           Tag[]
+  createdOn      DateTime? @map("created_on") @default(now())
+  updatedOn      DateTime? @map("updated_on") @updatedAt
+  isDeleted      Boolean   @map("is_deleted") @default(false)
+}
+model Option {
+  // Primary Key
+  id        String                        @id @default(uuid()) @db.VarChar(40)
+
+  // legacyId used for older options
+  legacyId  String?                       @db.VarChar(40)
+  refId     String?                       @db.VarChar(40)
+
+  // display value of the option
+  name      String
+
+  isOther   Boolean                       @default(false)
+
+  // tags          Tag[]
+  tags      Tag[]
+
+
+
+
+  questions Question[]
+
+
+  createdOn DateTime?  @map("created_on") @default(now())
+  updatedOn DateTime?  @map("updated_on") @updatedAt
+  isDeleted Boolean    @map("is_deleted") @default(false)
+}
+
+
+model Tag {
+  // Primary Key
+  id        String                        @id @db.VarChar(40)
+  // tag name (display only)
+  name      String
+  options   Option[]
+  questions Question[]
+
+
+  createdOn DateTime?  @map("created_on") @default(now())
+  updatedOn DateTime?  @map("updated_on") @updatedAt
+  isDeleted Boolean    @map("is_deleted") @default(false)
+}

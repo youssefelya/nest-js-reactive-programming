@@ -1,0 +1,10 @@
+version: '3.4'
+services:
+  sqlserver_arm:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    user: root
+    ports:
+      - 1433:1433
+    environment:
+      SA_PASSWORD: P@ssw0rd
+      ACCEPT_EULA: 'Y'
