@@ -5,6 +5,8 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 import { QuestionModule } from './question/question.module';
+import { SseController } from './question/sse.controller';
+import { PrismaModule } from './prisma.module';
 
 @Module({
   imports: [
@@ -14,8 +16,9 @@ import { QuestionModule } from './question/question.module';
       sortSchema: true,
     }),
     QuestionModule,
+    PrismaModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, SseController],
   providers: [AppService],
 })
 export class AppModule {}

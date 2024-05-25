@@ -21,7 +21,7 @@ datasource db {
 
 model Question {
   // Primary Key
-  id             String                       @id @db.VarChar(40)
+  id             String                       @id @db.VarChar(40) @default(uuid())
   simpleHelpText String?                      @db.VarChar(max)
   popupHelpText  String?                      @db.VarChar(max)
   text           String
@@ -61,7 +61,7 @@ model Option {
 
 model Tag {
   // Primary Key
-  id        String                        @id @db.VarChar(40)
+  id        String                        @id @db.VarChar(40) @default(uuid())
   // tag name (display only)
   name      String
   options   Option[]

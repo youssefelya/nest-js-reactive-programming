@@ -1,26 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { CreateQuestionInput } from './dto/create-question.input';
 import { UpdateQuestionInput } from './dto/update-question.input';
+import { PrismaService } from 'src/prisma.service';
+import { Question } from '@prisma/client';
 
 @Injectable()
 export class QuestionService {
-  create(createQuestionInput: CreateQuestionInput) {
-    return 'This action adds a new question';
+  constructor(private prisma: PrismaService) {}
+
+  async createMany() {
+    const questions = Array.from({ length: 30 }).map((item) => {
+      const time = new Date().getTime();
+      return {
+        text: `${time} text ${item}`,
+        popupHelpText: `${time} popupHelpText ${item}`,
+        simpleHelpText: `${time} simpleHelpText ${item}`,
+      };
+    });
+    console.log('Start create start');
+    await this.prisma.question.createMany({ data: questions });
+    console.log('End create start');
+    return await this.prisma.question.findMany({
+      orderBy: { createdOn: 'desc' },
+    });
   }
 
-  findAll() {
-    return `This action returns all question`;
+  async findAll() {
+    return await this.prisma.question.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} question`;
-  }
-
-  update(id: number, updateQuestionInput: UpdateQuestionInput) {
-    return `This action updates a #${id} question`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} question`;
+  async findMany({
+    skip,
+    take,
+  }: {
+    skip: number;
+    take: number;
+  }): Promise<Question[]> {
+    return this.prisma.question.findMany({
+      skip: skip || 0,
+      take: take || 10,
+    });
   }
 }
