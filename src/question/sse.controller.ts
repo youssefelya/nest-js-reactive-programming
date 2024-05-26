@@ -9,24 +9,42 @@ export class SseController {
 
   @Sse('questions')
   sendQuestions(): Observable<MessageEvent> {
-    const takeCount = 2;
+    const takeCount = 2; // Number of options/tags to fetch per chunk
     let currentSkip = 0;
+    const questionId = 'your-question-id'; // Replace with your question ID
+    let questionCache = null;
 
     return interval(1000).pipe(
       mergeMap(async () => {
-        const questions = await this.questionService.findMany({
-          skip: currentSkip,
-          take: takeCount,
-        });
-        if (questions.length > 0) {
-          console.log(questions);
-          currentSkip += takeCount;
-          return { data: questions } as MessageEvent;
+        if (!questionCache) {
+          questionCache = await this.questionService.findQuestionById(
+            questionId,
+          );
+          if (!questionCache) {
+            return null;
+          }
+          questionCache['options'] = [];
+          questionCache['tags'] = [];
+        }
+
+        const { options, tags } = await this.questionService.findOptionsAndTags(
+          questionId,
+          currentSkip,
+          takeCount,
+        );
+
+        currentSkip += takeCount;
+
+        if (options.length > 0 || tags.length > 0) {
+          questionCache['options'] = questionCache['options'].concat(options);
+          questionCache['tags'] = questionCache['tags'].concat(tags);
+          console.log(questionCache);
+          return { data: questionCache } as MessageEvent;
         } else {
           return null;
         }
       }),
-      takeWhile((event) => event !== null), // Continue emitting values while the event is not null
+      takeWhile((event) => event !== null),
       map((event) => {
         console.log(event);
         return event as MessageEvent;
