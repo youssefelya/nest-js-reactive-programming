@@ -9,6 +9,8 @@ import {
 import { QuestionService } from './question.service';
 import { Question } from './entities/question.entity';
 import { PubSub } from 'graphql-subscriptions';
+import { Observable, interval } from 'rxjs';
+import { map, mergeMap, takeWhile ,filter} from 'rxjs/operators';
 
 const pubSub = new PubSub();
 
@@ -32,7 +34,7 @@ export class QuestionResolver {
     resolve: (value) => value.questionsChunk,
   })
   async questionsChunk() {
-    const takeCount = 10; // Define the chunk size
+    const takeCount = 2; // Define the chunk size
     let currentSkip = 0;
 
     const interval = setInterval(async () => {
@@ -52,4 +54,41 @@ export class QuestionResolver {
 
     return pubSub.asyncIterator('questionsChunk');
   }
+
+
+
+
+
+
+
+  // this may work ?? please check 
+
+  @Query(() => [Question], { name: 'getAllQuestionsByChunks' })
+getAllQuestionsByChunks(): Observable<Question[]> {
+  const takeCount = 2;
+  let currentSkip = 0;
+
+  return interval(1000).pipe(
+    mergeMap(async () => {
+      const questions = await this.questionService.findMany({
+        skip: currentSkip,
+        take: takeCount,
+      });
+      if (questions.length > 0) {
+        console.log(questions);
+        currentSkip += takeCount;
+        return questions;
+      } else {
+        return null;
+      }
+    }),
+    takeWhile((questions) => questions !== null), // Continue emitting values while there are questions
+    filter((questions) => questions !== null), // Filter out null values
+    map((questions) => {
+      console.log(questions);
+      return questions;
+    }),
+  );
+}
+
 }

@@ -14,6 +14,7 @@ import { PrismaModule } from './prisma.module';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      installSubscriptionHandlers:true
     }),
     QuestionModule,
     PrismaModule,
