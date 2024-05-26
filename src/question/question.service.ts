@@ -80,19 +80,49 @@ export class QuestionService {
     questionId: string,
     skip: number,
     take: number,
-  ): Promise<{ options: Option[]; tags: Tag[] }> {
-    const options = await this.prisma.option.findMany({
-      where: { questions: { some: { id: questionId } } },
-      skip: skip || 0,
-      take: take || 10,
+  ): Promise<{ options: Option[] }> {
+    const options = (
+      await this.prisma.option.findMany({
+        where: { questions: { some: { id: questionId } } },
+        skip: skip || 0,
+        take: take || 10,
+      })
+    ).map((item) => {
+      item['tags'] = [];
+      return item;
     });
 
+    if (!options || options.length === 0) return { options };
+    const takeCount = 1000; // Number of options/tags to fetch per chunk
+    let currentSkip = 0;
+    for (const option of options) {
+      let hasMoreData = true;
+      while (hasMoreData) {
+        const optionTag = await this.findTagsByOptionId(
+          option.id,
+          currentSkip,
+          takeCount,
+        );
+        hasMoreData = optionTag && optionTag.tags.length > 0;
+        option['tags'] = option['tags'].concat(optionTag.tags);
+        currentSkip += takeCount;
+      }
+    }
+
+    return { options };
+  }
+
+  async findTagsByOptionId(
+    optionId: string,
+    skip: number,
+    take: number,
+  ): Promise<{ tags: Tag[] }> {
     const tags = await this.prisma.tag.findMany({
-      where: { questions: { some: { id: questionId } } },
+      where: { options: { some: { id: optionId } } },
       skip: skip || 0,
       take: take || 10,
     });
 
-    return { options, tags };
+    return { tags };
   }
 }

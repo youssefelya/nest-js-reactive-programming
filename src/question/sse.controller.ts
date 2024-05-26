@@ -24,20 +24,19 @@ export class SseController {
             return null;
           }
           questionCache['options'] = [];
-          questionCache['tags'] = [];
         }
 
-        const { options, tags } = await this.questionService.findOptionsAndTags(
-          questionId,
+        const { options } = await this.questionService.findOptionsAndTags(
+          questionCache.id,
           currentSkip,
           takeCount,
         );
 
         currentSkip += takeCount;
 
-        if (options.length > 0 || tags.length > 0) {
+        if (questionCache) {
           questionCache['options'] = questionCache['options'].concat(options);
-          questionCache['tags'] = questionCache['tags'].concat(tags);
+          //  questionCache['tags'] = questionCache['tags'].concat(tags);
           console.log(questionCache);
           return { data: questionCache } as MessageEvent;
         } else {
